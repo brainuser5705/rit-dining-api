@@ -1,36 +1,31 @@
 """
 Webscrapes the RIT Dining website
+
+@author Ashley Liew (brainuser5705)
 """
 
 from bs4 import BeautifulSoup
 import requests
 
+# URLs to the dining menus
 MENU_URL = 'https://www.rit.edu/fa/diningservices/daily-specials'
 GEN_MENU_URL = 'https://www.rit.edu/fa/diningservices/general-menus'
 
-# # Each location has an unique ID that is used as the 'id' attribute of their
-# # HTML div. This is hardcoded, but another possible way would be to find
-# # the children of html_content.
-# LOCATION_IDS = {"103", "104", "105", "107"}
 
-def get_menus(menu_url):
+def get_menus():
     """
-    Get menu for a location
-    
-    Parameters:
-    location_id -- the id of the location to get
-    menu_url -- url of menu to webscrape
+    Get menu for a location from the general menu
     """
 
-    page = requests.get(menu_url)
+    # sets up the BeautifulSoup object
+    page = requests.get(MENU_URL)
     soup = BeautifulSoup(page.content, 'html.parser')
 
+    # where all the content is stored
     html_content = soup.find('div', class_='ds-output')
 
+    # Skips the first element, which is an unecessary div
     for children in html_content.findAll('div', recursive=False)[1:]:
-
-    # # Div that contains all the content for a specific location
-    # html_location_block = html_content.find('div', id=location_id)
 
         html_location_block = children
 
@@ -38,13 +33,13 @@ def get_menus(menu_url):
         location_name = html_location_block.find('h3').text
         print(location_name)
 
-        # Contains the meals and their dishes
+        # Contains the meals and dishes of the location
         html_meals_list = html_location_block.find('div', class_='ds-loc-title')
 
         # Only display content if the location has meals to display
         if html_meals_list.contents:
 
-            # Get the individual meals
+            # Get the individual meals div (breakfast, lunch, dinner)
             html_meals = html_meals_list.findChildren(recursive=False)
 
             for html_meal in html_meals:
@@ -57,9 +52,11 @@ def get_menus(menu_url):
                     menu_type = html_meal_type.text[:-4]
                     print(menu_type)
 
+                    # where the station divs are
                     stations = html_meal.findAll('div', class_='col-xs-12 col-md-6 menu-category-list')
 
                     for station in stations:
+
                         html_station = station.find('div', class_='menu-category')
                         # VALUE
                         station_name = html_station.text
@@ -77,6 +74,9 @@ def get_menus(menu_url):
                     print("\n")
 
 def gen_menu():
+    """
+    Gets menu items from the general menu
+    """
 
     page = requests.get(GEN_MENU_URL)
     soup = BeautifulSoup(page.content, 'html.parser')
@@ -84,9 +84,6 @@ def gen_menu():
     html_content = soup.find('div', class_='ds-output')
 
     for children in html_content.findAll('div', recursive=False)[1:]:
-
-    # # Div that contains all the content for a specific location
-    # html_location_block = html_content.find('div', id=location_id)
 
         html_location_block = children
 
@@ -116,9 +113,3 @@ def gen_menu():
             print(dishes_list)
 
         print("\n")
-
-
-def main():
-    gen_menu()
-
-main()
