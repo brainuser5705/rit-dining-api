@@ -14,6 +14,5 @@ CREATE TABLE general (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT,
     location TEXT,
-    station TEXT,
-    meal_type
+    category TEXT
 );
