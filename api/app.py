@@ -8,6 +8,20 @@ import db
 app = Flask(__name__)
 api = Api(app)
 
+def _format_specials(specials_list):
+    special_json = []
+    for special in specials_list:
+        special_json.append(
+            {
+                'day':special['day'],
+                'name':special['name'],
+                'location':special['location'],
+                'station':special['station'],
+                'category':special['category']
+            }
+        )
+    return special_json
+
 class SpecialToday(Resource):
     def get(self):
         try:
@@ -15,19 +29,7 @@ class SpecialToday(Resource):
         except DatabaseError:
             return 500
 
-        special_jsons = []
-        for special in specials:
-            special_jsons.append(
-                {
-                    'day':special['day'],
-                    'name':special['name'],
-                    'location':special['location'],
-                    'station':special['station'],
-                    'category':special['category']
-                }
-            )
-
-        return jsonify({ 'specials' : special_jsons })
+        return jsonify({ 'specials' : _format_specials(specials) })
     
 
     def post(self):
@@ -54,10 +56,22 @@ class SpecialToday(Resource):
         return 200
 
 class SpecialDate(Resource):
-    def get(self, year, date, day):
-        return 200
+    def get(self, year, month, day):
+        try:
+            # url will automatically strip month and day
+            if month < 10:
+                month = "0" + str(month)
+            if day < 10:
+                day = "0" + str(day)
+            specials = db.execute_db_query('SELECT * FROM special WHERE day = "{}-{}-{}"'.format(year,month,day));
+        except DatabaseError:
+            return 500
+
+        return jsonify({ 'specials' : _format_specials(specials) })
+    
 
 api.add_resource(SpecialToday, '/specials/today')
+api.add_resource(SpecialDate, '/specials/<int:year>/<int:month>/<int:day>')
 
 def main():
     app.run(debug=True)
