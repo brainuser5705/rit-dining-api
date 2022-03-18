@@ -1,4 +1,5 @@
 from sqlite3 import DatabaseError
+from sre_parse import SPECIAL_CHARS
 from flask import Flask, request, jsonify
 from flask_restful import Resource, Api
 
@@ -10,11 +11,23 @@ api = Api(app)
 class SpecialToday(Resource):
     def get(self):
         try:
-            results = db.execute_db_query('SELECT * FROM special')
+            specials = db.execute_db_query("SELECT * FROM special WHERE day=date('now', 'localtime')")
         except DatabaseError:
             return 500
 
-        return jsonify(results)
+        special_jsons = []
+        for special in specials:
+            special_jsons.append(
+                {
+                    'day':special['day'],
+                    'name':special['name'],
+                    'location':special['location'],
+                    'station':special['station'],
+                    'category':special['category']
+                }
+            )
+
+        return jsonify({ 'specials' : special_jsons })
     
 
     def post(self):
@@ -32,12 +45,16 @@ class SpecialToday(Resource):
         try:
             db.execute_db_command(
                 'INSERT INTO special (day, name, location, station, category)'
-                'VALUES(datetime(?),?,?,?,?)', 
+                'VALUES(date(?,"localtime"),?,?,?,?)', 
                     (day, name, location, station, category)
             )   
         except DatabaseError:
             return 500
 
+        return 200
+
+class SpecialDate(Resource):
+    def get(self, year, date, day):
         return 200
 
 api.add_resource(SpecialToday, '/specials/today')

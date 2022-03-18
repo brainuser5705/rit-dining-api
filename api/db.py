@@ -5,14 +5,14 @@ DATABASE_FILE = 'instance/database.sqlite3'
 
 def init_db():
     connection = sqlite3.connect(DATABASE_FILE)
-    with open('api/schema.sql') as f:
+    with open('schema.sql') as f:
         connection.executescript(f.read())
     connection.commit()
     connection.close()
 
 def get_db_connection():
     conn = sqlite3.connect(DATABASE_FILE)
-    # conn.row_factory = sqlite3.Row
+    conn.row_factory = sqlite3.Row
     return conn
 
 def execute_db_command(command, args=()):
